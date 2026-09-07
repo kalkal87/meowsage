@@ -1,0 +1,46 @@
+name: Tests
+
+# When this workflow runs: on every push to main, and on every pull
+# request targeting main. That second trigger is what puts a pass/fail
+# check directly on a PR before it's merged, not just after.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # lets a human (or `gh workflow run`) trigger it manually
+
+# The GITHUB_TOKEN this workflow runs with. The suite only reads the
+# checkout — it publishes nothing, comments nowhere and touches no GitHub
+# state — so read access to the contents is the whole of what it needs.
+# Stated here rather than left to the repository-wide default, because that
+# default is a setting somewhere else that can be widened without anyone
+# reading this file noticing; a workflow that declares its own ceiling keeps
+# it regardless.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      # requires-python in pyproject.toml is ">=3.9"; running the minimum and
+      # a newer version catches anything that only works on one of them (e.g. a
+      # 3.10+ syntax feature creeping into a module that claims 3.9 support)
+      # without paying for every version in between.
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Only pytest, not the app's PySide6/Qt runtime dependencies: the tests
+      # exercise moods.py, usage.py, config.py, profile.py, and the non-Qt CLI
+      # paths. Installing Qt here would cost real CI minutes to test something
+      # the suite never imports.
+      - run: pip install pytest
+
+      - run: python -m pytest tests/ -v

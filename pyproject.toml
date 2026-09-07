@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meowsage"
+version = "0.1.0"
+description = "A floating pixel-art cat that reacts to your Claude Code activity."
+requires-python = ">=3.9"
+dependencies = [
+    "PySide6==6.10.3",
+    "PySide6_Addons==6.10.3",
+    "PySide6_Essentials==6.10.3",
+    "shiboken6==6.10.3",
+]
+
+[project.scripts]
+meow = "meowsage.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+# Only for scripts/render_demo_gif.py — Qt can encode single-frame WebP/PNG
+# but has no multi-frame writer plugin here, so GIF assembly needs Pillow.
+# Nothing under meowsage/ imports it.
+docs = ["pillow>=10"]
+
+[tool.setuptools]
+packages = ["meowsage"]
+
+[tool.setuptools.package-data]
+meowsage = ["assets/*.png", "assets/*.ico"]
